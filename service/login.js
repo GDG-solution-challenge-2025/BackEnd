@@ -70,6 +70,7 @@ export async function login(id, pw) {
             result: true,
             id: id,
             name: callCheckUser.name,
+            lang: callCheckUser.lang,
             session: callSha256.hash,
             expire: callExpireDate.date
         }

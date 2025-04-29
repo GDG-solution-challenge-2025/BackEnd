@@ -13,7 +13,11 @@ import {login} from './service/login.js'
 import {sessionLogin} from './service/sessionLogin.js'
 import {changeName} from './service/changeName.js'
 import {changePassword} from './service/changePassword.js'
-import {addIngredients} from './service/addIngredients.js'
+import {changeLang} from './service/changeLang.js'
+import {addOthersIngredients} from './service/addOthersIngredients.js'
+import {deleteOthersIngredients} from './service/deleteOthersIngredients.js'
+import {getOthersIngredients} from './service/getOthersIngredients.js'
+import {getIngredients} from './service/getIngredients.js'
 
 //middleware
 const app = express()
@@ -22,7 +26,7 @@ app.use(cors())
 
 //POST signup
 app.post('/signup', async function (req, res) {
-   const {id, pw, name} = req.body
+   const {id, pw, name, lang} = req.body
    const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]*$/
 
    if (!id || id.length < 3 || id.length > 50) {
@@ -46,11 +50,18 @@ app.post('/signup', async function (req, res) {
        })
    }
 
-   const callSignup = await signup(id, name, pw)
+   if (lang !== 0 && lang !== 1) {
+       return res.status(400).json({
+           code: 4,
+           message: 'lang은 0혹은 1입니다.(0:한국어 1:영어)'
+       })
+   }
 
-    if (callSignup.code === 4) {
+   const callSignup = await signup(id, name, pw, lang)
+
+    if (callSignup.code === 5) {
         return res.status(400).json({
-            code: 4,
+            code: 5,
             message: '중복된 id입니다.'
         })
     }
@@ -131,6 +142,7 @@ app.post('/login', async function (req, res) {
         return res.status(200).json({
             id: callLogin.id,
             name: callLogin.name,
+            lang: callLogin.lang,
             session: callLogin.session,
             expire: callLogin.expire
         })
@@ -167,6 +179,7 @@ app.post('/sessionLogin', async function (req, res) {
         return res.status(200).json({
             id: callSessionLogin.id,
             name: callSessionLogin.name,
+            lang: callSessionLogin.lang,
             session: callSessionLogin.session,
             expire: callSessionLogin.expire
         })
@@ -268,8 +281,48 @@ app.patch('/password', async function (req, res) {
     }
 })
 
-//PUT ingredients
-app.put('/ingredients', async function (req, res) {
+//PATCH lang
+app.patch('/lang', async function (req, res) {
+    const {session, lang} = req.body
+
+    if (!session || session.length !== 64) {
+        return res.status(400).json({
+            code: 1,
+            message: 'session은 64자입니다.'
+        })
+    }
+
+    if (lang !== 0 && lang !== 1) {
+        return res.status(400).json({
+            code: 2,
+            message: 'lang은 0혹은 1입니다.(0:한국어 1:영어)'
+        })
+    }
+
+    const callChangeLang = await changeLang(session, lang)
+
+    if (callChangeLang.code === 3) {
+        return res.status(400).json({
+            code: 3,
+            message: 'session이 만료되었거나 일치하지 않습니다.'
+        })
+    }
+
+    if (callChangeLang.result === false) {
+        return res.status(500).json({
+            message: '서버 오류입니다.'
+        })
+    }
+
+    if (callChangeLang.result === true) {
+        return res.status(200).json({
+            message: '성공'
+        })
+    }
+})
+
+//PUT othersIngredients
+app.put('/othersIngredients', async function (req, res) {
     const {session, ingredients} = req.body
     const regex = /^[a-zA-Z0-9가-힣\s]+$/;
 
@@ -297,12 +350,27 @@ app.put('/ingredients', async function (req, res) {
         }
     }
 
-    const callAddIngredients = await addIngredients(session, ingredients)
-
-    if (callAddIngredients.code === 4) {
+    if (new Set(ingredients).size !== ingredients.length) {
         return res.status(400).json({
             code: 4,
+            message: 'ingredients의 요소 중 중복된 요소가 있습니다.'
+        })
+    }
+
+    const callAddIngredients = await addOthersIngredients(session, ingredients)
+
+    if (callAddIngredients.code === 5) {
+        return res.status(400).json({
+            code: 5,
             message: 'session이 만료되었거나 일치하지 않습니다.'
+        })
+    }
+
+    if (callAddIngredients.code === 6) {
+        return res.status(400).json({
+            code: 6,
+            message: '이미 등록된 ingredient가 있습니다.',
+            ingredient: callAddIngredients.ingredient
         })
     }
 
@@ -315,6 +383,162 @@ app.put('/ingredients', async function (req, res) {
     if (callAddIngredients.result === true) {
         return res.status(200).json({
             message: '성공'
+        })
+    }
+})
+
+//DELETE othersIngredients
+app.delete('/othersIngredients', async function (req, res) {
+    const {session, ingredients} = req.body
+    const regex = /^[a-zA-Z0-9가-힣\s]+$/;
+
+
+    if (!session || session.length !== 64) {
+        return res.status(400).json({
+            code: 1,
+            message: 'session은 64자입니다.'
+        })
+    }
+
+    if (!ingredients || ingredients.length === 0) {
+        return res.status(400).json({
+            code: 2,
+            message: 'ingredients는 1개 이상의 요소가 필요합니다.'
+        })
+    }
+
+    for (let i = 0; i < ingredients.length; i++) {
+        if (ingredients[i] < 1 || ingredients[i] > 50 || !regex.test(ingredients[i])) {
+            return res.status(400).json({
+                code: 3,
+                message: 'ingredients의 요소는 1자 이상 50자 이하, 정규식(특수기호 미포함)을 충족해야 합니다.'
+            })
+        }
+    }
+
+    if (new Set(ingredients).size !== ingredients.length) {
+        return res.status(400).json({
+            code: 4,
+            message: 'ingredients의 요소 중 중복된 요소가 있습니다.'
+        })
+    }
+
+    const callDeleteOthersIngredients = await deleteOthersIngredients(session, ingredients)
+
+    if (callDeleteOthersIngredients.code === 5) {
+        return res.status(400).json({
+            code: 5,
+            message: 'session이 만료되었거나 일치하지 않습니다.'
+        })
+    }
+
+    if (callDeleteOthersIngredients.code === 6) {
+        return res.status(400).json({
+            code: 6,
+            message: '등록되지 않은 ingredient가 있습니다.',
+            ingredient: callDeleteOthersIngredients.ingredient
+        })
+    }
+
+    if (callDeleteOthersIngredients.result === false) {
+        return res.status(500).json({
+            message: '서버 오류입니다.'
+        })
+    }
+
+    if (callDeleteOthersIngredients.result === true) {
+        return res.status(200).json({
+            message: '성공'
+        })
+    }
+})
+
+//GET othersIngredients
+app.get('/othersIngredients', async function (req, res) {
+    const {session} = req.body
+
+    if (!session || session.length !== 64) {
+        return res.status(400).json({
+            code: 1,
+            message: 'session은 64자입니다.'
+        })
+    }
+
+    const callGetOthersIngredients = await getOthersIngredients(session)
+
+    if (callGetOthersIngredients.code === 2) {
+        return res.status(400).json({
+            code: 2,
+            message: 'session이 만료되었거나 일치하지 않습니다.'
+        })
+    }
+
+    if (callGetOthersIngredients.result === false) {
+        return res.status(500).json({
+            message: '서버 오류입니다.'
+        })
+    }
+
+    if (callGetOthersIngredients.result === true) {
+        return res.status(200).json({
+            ingredients: callGetOthersIngredients.ingredients
+        })
+    }
+})
+
+//GET ingredients
+app.get('/ingredients', async function (req, res) {
+    const {session} = req.body
+
+    if (!session || session.length !== 64) {
+        return res.status(400).json({
+            code: 1,
+            message: 'session은 64자입니다.'
+        })
+    }
+
+    const callGetIngredients = await getIngredients(session)
+
+    if (callGetIngredients.code === 2) {
+        return res.status(400).json({
+            code: 2,
+            message: 'session이 만료되었거나 일치하지 않습니다.'
+        })
+    }
+
+    if (callGetIngredients.result === false) {
+        return res.status(500).json({
+            message: '서버 오류입니다.'
+        })
+    }
+
+    if (callGetIngredients.result === true) {
+        return res.status(200).json({
+            pork: callGetIngredients.pork,
+            beef: callGetIngredients.beef,
+            horseMeat: callGetIngredients.horseMeat,
+            chicken: callGetIngredients.chicken,
+            duck: callGetIngredients.duck,
+            salmon: callGetIngredients.salmon,
+            tuna: callGetIngredients.tuna,
+            shrimp: callGetIngredients.shrimp,
+            crab: callGetIngredients.crab,
+            lobster: callGetIngredients.lobster,
+            clam: callGetIngredients.clam,
+            oyster: callGetIngredients.oyster,
+            mussel: callGetIngredients.mussel,
+            scallop: callGetIngredients.scallop,
+            milk: callGetIngredients.milk,
+            cheese: callGetIngredients.cheese,
+            butter: callGetIngredients.butter,
+            wheat: callGetIngredients.wheat,
+            barley: callGetIngredients.barley,
+            rice: callGetIngredients.rice,
+            corn: callGetIngredients.corn,
+            soybean: callGetIngredients.soybean,
+            peanut: callGetIngredients.peanut,
+            almond: callGetIngredients.almond,
+            cashewNut: callGetIngredients.cashewNut
         })
     }
 })

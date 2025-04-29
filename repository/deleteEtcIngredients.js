@@ -1,7 +1,7 @@
 //function
 import {dbConnection} from '../function/dbConnection.js'
 
-export async function insertIngredients(uidx, ingredients) {
+export async function deleteEtcIngredients(uidx, ingredients) {
     try {
         const callDbConnection = await dbConnection()
 
@@ -9,13 +9,13 @@ export async function insertIngredients(uidx, ingredients) {
             throw new Error('dbConnection')
         }
 
-        const query = 'INSERT INTO ingredients (uidx, ingredient) VALUES (?,?)'
+        const query = 'DELETE FROM etcingredients WHERE uidx = ? AND ingredient = ?'
 
         for (let i = 0; i < ingredients.length; i++) {
             const [result] = await callDbConnection.connection.execute(query, [uidx, ingredients[i]])
 
             if (result.affectedRows === 0) {
-                throw new Error('query: INSERT INTO ingredients ' + uidx + ', ' + ingredients[i])
+                throw new Error('query: DELETE FROM etcingredients WHERE ' + uidx + 'AND' + ingredients[i])
             }
         }
 
@@ -27,7 +27,7 @@ export async function insertIngredients(uidx, ingredients) {
     }
 
     catch (err) {
-        console.log('[ERROR] InsertIngredients')
+        console.log('[ERROR] DeleteEtcIngredients')
         console.log(err + '\n\n')
 
         return {

@@ -2,9 +2,9 @@
 import {checkExpireSession} from '../function/checkExpireSession.js'
 
 //repository
-import {insertIngredients} from '../repository/insertIngredients.js'
+import {updateName} from '../repository/updateName.js'
 
-export async function addIngredients(session, ingredients) {
+export async function changeLang(session, lang) {
     try {
         const callCheckExpireSession = await checkExpireSession(session)
 
@@ -15,13 +15,13 @@ export async function addIngredients(session, ingredients) {
         if (callCheckExpireSession.expire === true) {
             return {
                 result: true,
-                code: 4
+                code: 3
             }
         }
 
-        const callInsertIngredients = await insertIngredients(callCheckExpireSession.uidx, ingredients)
+        const callUpdateLang = await updateName(callCheckExpireSession.uidx, lang)
 
-        if (callInsertIngredients.result === false) {
+        if (callUpdateLang.result === false) {
             throw new Error()
         }
 

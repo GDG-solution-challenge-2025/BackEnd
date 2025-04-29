@@ -1,7 +1,7 @@
 //function
 import {dbConnection} from '../function/dbConnection.js'
 
-export async function findUser(uidx) {
+export async function findEtcIngredients(uidx) {
     try {
         const callDbConnection = await dbConnection()
 
@@ -9,30 +9,18 @@ export async function findUser(uidx) {
             throw new Error('dbConnection')
         }
 
-        const query = 'SELECT * FROM users WHERE uidx = ?'
+        const query = 'SELECT * FROM etcingredients WHERE uidx = ?'
         const [rows] = await callDbConnection.connection.execute(query, [uidx])
         await callDbConnection.connection.end()
 
-        if (rows.length === 0) {
-            return {
-                result: true,
-                uidx: null,
-                id: null,
-                name: null
-            }
-        }
-
         return {
             result: true,
-            uidx: rows[0].uidx,
-            id: rows[0].id,
-            name: rows[0].name,
-            lang: rows[0].lang
+            ingredients: rows.map(row => row.ingredient)
         }
     }
 
     catch (err) {
-        console.log('[ERROR] findUser')
+        console.log('[ERROR] findEtcIngredients')
         console.log(err + '\n\n')
 
         return {

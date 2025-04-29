@@ -5,7 +5,7 @@ import {sha256} from '../function/sha256.js'
 import {duplicatedId} from '../repository/duplicatedId.js'
 import {insertUser} from '../repository/InsertUser.js'
 
-export async function signup(id, name, pw) {
+export async function signup(id, name, pw, lang) {
     try {
         const callDuplicatedId = await duplicatedId(id)
 
@@ -16,7 +16,7 @@ export async function signup(id, name, pw) {
         if (callDuplicatedId.dubplicate === true) {
             return {
                 result: true,
-                code: 4
+                code: 5
             }
         }
 
@@ -27,7 +27,7 @@ export async function signup(id, name, pw) {
             throw new Error()
         }
 
-        const callInsertUser = await insertUser(id, callSha256.hash, name);
+        const callInsertUser = await insertUser(id, callSha256.hash, name, lang);
 
         if (callInsertUser.result === false) {
             throw new Error()

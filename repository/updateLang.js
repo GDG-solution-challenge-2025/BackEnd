@@ -1,7 +1,7 @@
 //function
 import {dbConnection} from '../function/dbConnection.js'
 
-export async function insertUser(id, pw, name, lang) {
+export async function updateLang(uidx, lang) {
     try {
         const callDbConnection = await dbConnection()
 
@@ -9,21 +9,21 @@ export async function insertUser(id, pw, name, lang) {
             throw new Error('dbConnection')
         }
 
-        const query = 'INSERT INTO users (id, pw, name, lang) VALUES (?,?,?,?)'
-        const [result] = await callDbConnection.connection.execute(query, [id, pw, name, lang])
+        const query = 'UPDATE users SET lang = ? WHERE uidx = ?'
+        const [result] = await callDbConnection.connection.execute(query, [lang, uidx])
         await callDbConnection.connection.end()
 
         if (result.affectedRows === 0) {
-            throw new Error('query: INSERT INTO users ' + id + ', ' + pw + ', ' + name + ', ' + lang)
+            throw new Error('query: UPDATE users SET ' + lang + ' WHERE ' + uidx)
         }
 
         return {
-            result: true
+            result: true,
         }
     }
 
     catch (err) {
-        console.log('[ERROR] InsertUser')
+        console.log('[ERROR] updateLang')
         console.log(err + '\n\n')
 
         return {

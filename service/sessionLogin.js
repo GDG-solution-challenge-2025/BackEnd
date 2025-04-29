@@ -53,6 +53,7 @@ export async function sessionLogin(session) {
             result: true,
             id: callFindUser.id,
             name: callFindUser.name,
+            lang: callFindUser.lang,
             session: session,
             expire: callExpireDate.date
         }

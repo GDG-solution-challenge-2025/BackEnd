@@ -26,7 +26,8 @@ export async function checkUser(id, pw) {
             result: true,
             uidx: rows[0].uidx,
             id: rows[0].id,
-            name: rows[0].name
+            name: rows[0].name,
+            lang: rows[0].lang
         }
     }
 
