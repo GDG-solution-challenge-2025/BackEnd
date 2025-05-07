@@ -2,6 +2,8 @@
 import express from 'express'
 import bodyParser from 'body-parser'
 import cors from 'cors'
+import multer from 'multer'
+import path from 'path';
 
 //config
 import config from './config.js'
@@ -18,9 +20,24 @@ import {addOthersIngredients} from './service/addOthersIngredients.js'
 import {deleteOthersIngredients} from './service/deleteOthersIngredients.js'
 import {getOthersIngredients} from './service/getOthersIngredients.js'
 import {getIngredients} from './service/getIngredients.js'
+import {patchIngredients} from './service/patchIngredients.js'
+import {postFoodAI} from './service/postFoodAI.js';
 
 //middleware
 const app = express()
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, config.filePath);
+    },
+    filename: (req, file, cb) => {
+        const extname = path.extname(file.originalname);
+        const filename = Date.now() + extname;
+        cb(null, filename);
+    }
+});
+const upload = multer({
+    storage: storage
+});
 app.use(bodyParser.json())
 app.use(cors())
 
@@ -539,6 +556,88 @@ app.get('/ingredients', async function (req, res) {
             peanut: callGetIngredients.peanut,
             almond: callGetIngredients.almond,
             cashewNut: callGetIngredients.cashewNut
+        })
+    }
+})
+
+//PATCH ingredients
+app.patch('/ingredients', async function (req, res) {
+    const {session, pork, beef, horseMeat, chicken, duck, salmon, tuna, shrimp, crab, lobster, clam, oyster, mussel, scallop, milk, cheese, butter, wheat, barley, rice, corn, soybean, peanut, almond, cashewNut} = req.body
+
+    if (!session || session.length !== 64) {
+        return res.status(400).json({
+            code: 1,
+            message: 'session은 64자입니다.'
+        })
+    }
+
+    const callPatchIngredients = await patchIngredients(session, pork, beef, horseMeat, chicken, duck, salmon, tuna, shrimp, crab, lobster, clam, oyster, mussel, scallop, milk, cheese, butter, wheat, barley, rice, corn, soybean, peanut, almond, cashewNut)
+
+    if (callPatchIngredients.code === 2) {
+        return res.status(400).json({
+            code: 2,
+            message: 'session이 만료되었거나 일치하지 않습니다.'
+        })
+    }
+
+    if (callPatchIngredients.result === false) {
+        return res.status(500).json({
+            message: '서버 오류입니다.'
+        })
+    }
+
+    if (callPatchIngredients.result === true) {
+        return res.status(200).json({
+            message: '성공'
+        })
+    }
+})
+
+//POST foodAI
+app.post('/foodAI', upload.single('file'), async function (req, res) {
+    const uploadedFile = req.file;
+
+    if (!uploadedFile) {
+        return res.status(400).json({
+            code: 1,
+            message: 'file이 업로드되지 않았습니다.'
+        });
+    }
+
+    const {session} = req.body
+
+    if (!session || session.length !== 64) {
+        return res.status(400).json({
+            code: 2,
+            message: 'session은 64자입니다.'
+        })
+    }
+
+    const callPostFoodAI = await postFoodAI(session, uploadedFile.filename)
+
+    if (callPostFoodAI.code === 3) {
+        return res.status(400).json({
+            code: 3,
+            message: 'session이 만료되었거나 일치하지 않습니다.'
+        })
+    }
+
+    if (callPostFoodAI.result === false) {
+        return res.status(500).json({
+            message: '서버 오류입니다.'
+        })
+    }
+
+    if (callPostFoodAI.result === true) {
+        return res.status(200).json({
+            sidx: callPostFoodAI.sidx,
+            imgURL: callPostFoodAI.imgURL,
+            name: callPostFoodAI.name,
+            description: callPostFoodAI.description,
+            origin: callPostFoodAI.origin,
+            howToEat: callPostFoodAI.howToEat,
+            ingredients: callPostFoodAI.ingredients,
+            cantIngredients: callPostFoodAI.cantIngredients
         })
     }
 })

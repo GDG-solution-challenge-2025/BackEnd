@@ -2,7 +2,7 @@
 import {checkExpireSession} from '../function/checkExpireSession.js'
 
 //repository
-import {updateName} from '../repository/updateName.js'
+import {updateLang} from '../repository/updateLang.js'
 
 export async function changeLang(session, lang) {
     try {
@@ -19,7 +19,7 @@ export async function changeLang(session, lang) {
             }
         }
 
-        const callUpdateLang = await updateName(callCheckExpireSession.uidx, lang)
+        const callUpdateLang = await updateLang(callCheckExpireSession.uidx, lang)
 
         if (callUpdateLang.result === false) {
             throw new Error()
