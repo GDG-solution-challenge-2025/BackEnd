@@ -21,7 +21,8 @@ import {deleteOthersIngredients} from './service/deleteOthersIngredients.js'
 import {getOthersIngredients} from './service/getOthersIngredients.js'
 import {getIngredients} from './service/getIngredients.js'
 import {patchIngredients} from './service/patchIngredients.js'
-import {postFoodAI} from './service/postFoodAI.js';
+import {postFoodAI} from './service/postFoodAI.js'
+import {postGoogleMap} from './service/postGoogleMap.js'
 
 //middleware
 const app = express()
@@ -632,12 +633,74 @@ app.post('/foodAI', upload.single('file'), async function (req, res) {
         return res.status(200).json({
             sidx: callPostFoodAI.sidx,
             imgURL: callPostFoodAI.imgURL,
-            name: callPostFoodAI.name,
+            food: callPostFoodAI.name,
             description: callPostFoodAI.description,
             origin: callPostFoodAI.origin,
             howToEat: callPostFoodAI.howToEat,
             ingredients: callPostFoodAI.ingredients,
             cantIngredients: callPostFoodAI.cantIngredients
+        })
+    }
+})
+
+//POST googleMap
+app.post('/googleMap', async function (req, res) {
+    const {session, food, gpsX, gpsY} = req.body
+
+    if (!session || session.length !== 64) {
+        return res.status(400).json({
+            code: 1,
+            message: 'session은 64자입니다.'
+        })
+    }
+
+    if (!food || food.length > 100) {
+        return res.status(400).json({
+            code: 2,
+            message: 'food는 1자 이상 100자 이하입니다.'
+        })
+    }
+
+    if (typeof gpsX !== 'number' || !isFinite(gpsX) || gpsX < -180 || gpsX > 180) {
+        return res.status(400).json({
+            code: 3,
+            message: 'gpsX는 -180 이상 180 이하의 숫자여야 합니다.'
+        });
+    }
+
+    if (typeof gpsY !== 'number' || !isFinite(gpsY) || gpsY < -90 || gpsY > 90) {
+        return res.status(400).json({
+            code: 4,
+            message: 'gpsY는 -90 이상 90 이하의 숫자여야 합니다.'
+        });
+    }
+
+
+    const callPostGoogleMap = await postGoogleMap(session, food, gpsX, gpsY)
+
+    if (callPostGoogleMap.code === 5) {
+        return res.status(400).json({
+            code: 2,
+            message: 'session이 만료되었거나 일치하지 않습니다.'
+        })
+    }
+
+    if (callPostGoogleMap.code === 6) {
+        return res.status(400).json({
+            code: 2,
+            message: '검색 결과가 없습니다.'
+        })
+    }
+
+    if (callPostGoogleMap.result === false) {
+        return res.status(500).json({
+            message: '서버 오류입니다.'
+        })
+    }
+
+    if (callPostGoogleMap.result === true) {
+        return res.status(200).json({
+            googleMap: callPostGoogleMap.googleMap
         })
     }
 })
