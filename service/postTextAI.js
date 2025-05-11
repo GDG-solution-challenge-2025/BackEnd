@@ -6,7 +6,7 @@ import {findEtcIngredients} from '../repository/findEtcIngredients.js'
 import {findUser} from '../repository/findUser.js'
 import {insertSearch} from '../repository/insertSearch.js'
 
-export async function postFoodAI(session, file) {
+export async function postTextAI(session, food) {
     try {
         const callCheckExpireSession = await checkExpireSession(session)
 
@@ -41,7 +41,7 @@ export async function postFoodAI(session, file) {
 
         cant.push(...callFindEtcIngredients.ingredients)
 
-        const cmd = `chcp 65001 > nul && (echo ${config.filePath}/${file} & echo ${cant.join(', ')}) | "${config.pythonPath}" ${config.foodAI}`
+        const cmd = `chcp 65001 > nul && (echo ${food} & echo ${cant.join(', ')}) | "${config.pythonPath}" ${config.textAI}`
 
         const result = await new Promise((resolve, reject) => {
             const child = exec(cmd, (error, stdout, stderr) => {
@@ -52,7 +52,7 @@ export async function postFoodAI(session, file) {
             const timeout = setTimeout(() => {
                 child.kill()
                 reject(new Error('Timeout: No stdout within 1 minute'))
-            }, 240000)
+            }, 60000)
         })
 
         if (typeof result === 'string' && !result.includes('---___###@@@')) {
@@ -77,8 +77,8 @@ export async function postFoodAI(session, file) {
 
         if (callFindUser.result === false) throw new Error()
 
-        const sidx = parseInt(file.match(/\d+/)[0].slice(-9), 10)
-        const imgURL = config.serverIP + '/file/' + file
+        const sidx = parseInt((Math.floor(Math.random() * 1e13).toString().padStart(13, '0')).match(/\d+/)[0].slice(-9), 10)
+        const imgURL = 'none'
         const date = new Date().toISOString().slice(0, 10).replace(/-/g, '')
         const callInsertSearch = await insertSearch(sidx, callCheckExpireSession.uidx, date, imgURL, nameKo, descriptionKo, originKo, howToEatKo, ingredientsKo, cantIngredientsKo, nameEn, descriptionEn, originEn, howToEatEn, ingredientsEn, cantIngredientsEn)
 

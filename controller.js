@@ -29,6 +29,9 @@ import {getFoodLike} from './service/getFoodLike.js'
 import {getSearchDetail} from './service/getSearchDetail.js'
 import {getLikeRanking} from './service/getLikeRanking.js'
 import {getSearchRanking} from './service/getSearchRanking.js'
+import {postOcrAI} from './service/postOcrAI.js'
+import {postTextAI} from './service/postTextAI.js'
+import {getGoogleTranslate} from './service/getGoogleTranslate.js'
 
 //middleware
 const app = express()
@@ -942,6 +945,128 @@ app.get('/searchRanking', async function (req, res) {
     if (callGetSearchRanking.result === true) {
         return res.status(200).json({
             likeRanking: callGetSearchRanking.foods
+        })
+    }
+})
+
+//POST ocrAI
+app.post('/ocrAI', upload.single('file'), async function (req, res) {
+    const uploadedFile = req.file;
+
+    if (!uploadedFile) {
+        return res.status(400).json({
+            code: 1,
+            message: 'file이 업로드되지 않았습니다.'
+        });
+    }
+
+    const {session} = req.body
+
+    if (!session || session.length !== 64) {
+        return res.status(400).json({
+            code: 2,
+            message: 'session은 64자입니다.'
+        })
+    }
+
+    const callPostOcrAI = await postOcrAI(session, uploadedFile.filename)
+
+    if (callPostOcrAI.code === 3) {
+        return res.status(400).json({
+            code: 3,
+            message: 'session이 만료되었거나 일치하지 않습니다.'
+        })
+    }
+
+    if (callPostOcrAI.result === false) {
+        return res.status(500).json({
+            message: '서버 오류입니다.'
+        })
+    }
+
+    if (callPostOcrAI.result === true) {
+        return res.status(200).json({
+            menu: callPostOcrAI.menu
+        })
+    }
+})
+
+//POST textAI
+app.post('/textAI', async function (req, res) {
+    const {session, food} = req.body
+
+    if (!session || session.length !== 64) {
+        return res.status(400).json({
+            code: 1,
+            message: 'session은 64자입니다.'
+        })
+    }
+
+    if (!food || food.length > 100) {
+        return res.status(400).json({
+            code: 2,
+            message: 'food는 1자 이상 100자 이하입니다.'
+        })
+    }
+
+    const callPostTextAI = await postTextAI(session, food)
+
+    if (callPostTextAI.code === 3) {
+        return res.status(400).json({
+            code: 3,
+            message: 'session이 만료되었거나 일치하지 않습니다.'
+        })
+    }
+
+    if (callPostTextAI.result === false) {
+        return res.status(500).json({
+            message: '서버 오류입니다.'
+        })
+    }
+
+    if (callPostTextAI.result === true) {
+        return res.status(200).json({
+            sidx: callPostTextAI.sidx,
+            imgURL: callPostTextAI.imgURL,
+            food: callPostTextAI.name,
+            description: callPostTextAI.description,
+            origin: callPostTextAI.origin,
+            howToEat: callPostTextAI.howToEat,
+            ingredients: callPostTextAI.ingredients,
+            cantIngredients: callPostTextAI.cantIngredients
+        })
+    }
+})
+
+//GET googleTranslate
+app.get('/googleTranslate', async function (req, res) {
+    const {session} = req.body
+
+    if (!session || session.length !== 64) {
+        return res.status(400).json({
+            code: 1,
+            message: 'session은 64자입니다.'
+        })
+    }
+
+    const callGetGoogleTranslate = await getGoogleTranslate(session)
+
+    if (callGetGoogleTranslate.code === 2) {
+        return res.status(400).json({
+            code: 2,
+            message: 'session이 만료되었거나 일치하지 않습니다.'
+        })
+    }
+
+    if (callGetGoogleTranslate.result === false) {
+        return res.status(500).json({
+            message: '서버 오류입니다.'
+        })
+    }
+
+    if (callGetGoogleTranslate.result === true) {
+        return res.status(200).json({
+            googleTranslate: callGetGoogleTranslate.url
         })
     }
 })

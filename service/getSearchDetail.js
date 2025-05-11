@@ -35,27 +35,27 @@ export async function getSearchDetail(session, sidx) {
         if (callFindUser.lang === 0) {
             return {
                 result: true,
-                sidx: callFindUser.sidx,
-                imgURL: callFindUser.imgURL,
-                name: callFindUser.nameKo,
-                description: callFindUser.descriptionKo,
-                origin: callFindUser.originKo,
-                howToEat: callFindUser.howToEatKo,
-                ingredients: callFindUser.ingredientsKo,
-                cantIngredients: callFindUser.ingredientsKo,
+                sidx: callFindSearch.sidx,
+                imgURL: callFindSearch.imgURL,
+                name: callFindSearch.nameKo,
+                description: callFindSearch.descriptionKo,
+                origin: callFindSearch.originKo,
+                howToEat: callFindSearch.howToEatKo,
+                ingredients: callFindSearch.ingredientsKo,
+                cantIngredients: callFindSearch.ingredientsKo,
             }
         }
 
         return {
             result: true,
-            sidx: callFindUser.sidx,
-            imgURL: callFindUser.imgURL,
-            name: callFindUser.nameEn,
-            description: callFindUser.descriptionEn,
-            origin: callFindUser.originEn,
-            howToEat: callFindUser.howToEatEn,
-            ingredients: callFindUser.ingredientsEn,
-            cantIngredients: callFindUser.ingredientsEn,
+            sidx: callFindSearch.sidx,
+            imgURL: callFindSearch.imgURL,
+            name: callFindSearch.nameEn,
+            description: callFindSearch.descriptionEn,
+            origin: callFindSearch.originEn,
+            howToEat: callFindSearch.howToEatEn,
+            ingredients: callFindSearch.ingredientsEn,
+            cantIngredients: callFindSearch.ingredientsEn,
         }
     }
 

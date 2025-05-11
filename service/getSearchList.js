@@ -42,8 +42,10 @@ export async function getSearchList(session) {
         if (callFindUser.lang === 0) {
             const searchList = callFindSearchAll.searchList.map(search => ({
                 sidx: search.sidx,
+                date: search.date,
                 imgURL: search.imgURL,
-                name: search.nameKo
+                name: search.nameKo,
+                like: search.like
             }));
 
             return {
@@ -55,8 +57,10 @@ export async function getSearchList(session) {
         if (callFindUser.lang === 1) {
             const searchList = callFindSearchAll.searchList.map(search => ({
                 sidx: search.sidx,
+                date: search.date,
                 imgURL: search.imgURL,
-                name: search.nameEn
+                name: search.nameEn,
+                like: search.like
             }));
 
             return {
