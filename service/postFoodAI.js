@@ -61,17 +61,17 @@ export async function postFoodAI(session, file) {
 
         const parsed = result.split('---___###@@@').map(item => item.trim()).filter(Boolean)
         const nameKo = parsed[0]?.replace(/`/g, '').replace(/\r?\n/g, '').trim()
-        const nameEn = parsed[2]?.replace(/`/g, '').replace(/\r?\n/g, '').trim()
-        const descriptionKo = parsed[3]?.replace(/`/g, '').replace(/\r?\n/g, '').trim()
-        const originKo = parsed[4]?.replace(/`/g, '').replace(/\r?\n/g, '').trim()
-        const howToEatKo = parsed[5]?.replace(/`/g, '').replace(/\r?\n/g, '').trim()
-        const ingredientsKo = parsed[6]?.replace(/`/g, '').trim().split(/\r?\n/).map(i => i.replace(/^\*\s*/, '').trim()).filter(Boolean)
-        const cantIngredientsKo = parsed[7]?.replace(/`/g, '').trim().split(/\r?\n/).map(i => i.replace(/^\*\s*/, '').trim()).filter(Boolean)
-        const descriptionEn = parsed[8]?.replace(/`/g, '').replace(/\r?\n/g, '').trim()
-        const originEn = parsed[9]?.replace(/`/g, '').replace(/\r?\n/g, '').trim()
-        const howToEatEn = parsed[10]?.replace(/`/g, '').replace(/\r?\n/g, '').trim()
-        const ingredientsEn = parsed[11]?.replace(/`/g, '').trim().split(/\r?\n/).map(i => i.replace(/^\*\s*/, '').trim()).filter(Boolean)
-        const cantIngredientsEn = parsed[12]?.replace(/`/g, '').trim().split(/\r?\n/).map(i => i.replace(/^\*\s*/, '').trim()).filter(Boolean)
+        const nameEn = parsed[1]?.replace(/`/g, '').replace(/\r?\n/g, '').trim()
+        const descriptionKo = parsed[2]?.replace(/`/g, '').replace(/\r?\n/g, '').trim()
+        const originKo = parsed[3]?.replace(/`/g, '').replace(/\r?\n/g, '').trim()
+        const howToEatKo = parsed[4]?.replace(/`/g, '').replace(/\r?\n/g, '').trim()
+        const ingredientsKo = parsed[5]?.replace(/`/g, '').trim().split(/\r?\n/).map(i => i.replace(/^\*\s*/, '').trim()).filter(Boolean)
+        const cantIngredientsKo = parsed[6]?.replace(/`/g, '').trim().split(/\r?\n/).map(i => i.replace(/^\*\s*/, '').trim()).filter(Boolean)
+        const descriptionEn = parsed[7]?.replace(/`/g, '').replace(/\r?\n/g, '').trim()
+        const originEn = parsed[8]?.replace(/`/g, '').replace(/\r?\n/g, '').trim()
+        const howToEatEn = parsed[9]?.replace(/`/g, '').replace(/\r?\n/g, '').trim()
+        const ingredientsEn = parsed[10]?.replace(/`/g, '').trim().split(/\r?\n/).map(i => i.replace(/^\*\s*/, '').trim()).filter(Boolean)
+        const cantIngredientsEn = parsed[11]?.replace(/`/g, '').trim().split(/\r?\n/).map(i => i.replace(/^\*\s*/, '').trim()).filter(Boolean)
 
         const callFindUser = await findUser(callCheckExpireSession.uidx)
 
@@ -79,7 +79,8 @@ export async function postFoodAI(session, file) {
 
         const sidx = parseInt(file.match(/\d+/)[0].slice(-9), 10)
         const imgURL = config.serverIP + '/file/' + file
-        const callInsertSearch = await insertSearch(sidx, callCheckExpireSession.uidx, imgURL, nameKo, descriptionKo, originKo, howToEatKo, ingredientsKo, cantIngredientsKo, nameEn, descriptionEn, originEn, howToEatEn, ingredientsEn, cantIngredientsEn)
+        const date = new Date().toISOString().slice(0, 10).replace(/-/g, '')
+        const callInsertSearch = await insertSearch(sidx, callCheckExpireSession.uidx, date, imgURL, nameKo, descriptionKo, originKo, howToEatKo, ingredientsKo, cantIngredientsKo, nameEn, descriptionEn, originEn, howToEatEn, ingredientsEn, cantIngredientsEn)
 
         if (callInsertSearch.result === false) throw new Error()
 

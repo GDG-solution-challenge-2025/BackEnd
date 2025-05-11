@@ -23,6 +23,12 @@ import {getIngredients} from './service/getIngredients.js'
 import {patchIngredients} from './service/patchIngredients.js'
 import {postFoodAI} from './service/postFoodAI.js'
 import {postGoogleMap} from './service/postGoogleMap.js'
+import {getSearchList} from './service/getSearchList.js'
+import {patchFoodLike} from './service/patchFoodLike.js'
+import {getFoodLike} from './service/getFoodLike.js'
+import {getSearchDetail} from './service/getSearchDetail.js'
+import {getLikeRanking} from './service/getLikeRanking.js'
+import {getSearchRanking} from './service/getSearchRanking.js'
 
 //middleware
 const app = express()
@@ -32,8 +38,10 @@ const storage = multer.diskStorage({
     },
     filename: (req, file, cb) => {
         const extname = path.extname(file.originalname);
-        const filename = Date.now() + extname;
-        cb(null, filename);
+        const randomNum = Math.floor(Math.random() * 1e13)
+            .toString()
+            .padStart(13, '0');
+        cb(null, `${randomNum}${extname}`);
     }
 });
 const upload = multer({
@@ -680,14 +688,14 @@ app.post('/googleMap', async function (req, res) {
 
     if (callPostGoogleMap.code === 5) {
         return res.status(400).json({
-            code: 2,
+            code: 5,
             message: 'session이 만료되었거나 일치하지 않습니다.'
         })
     }
 
     if (callPostGoogleMap.code === 6) {
         return res.status(400).json({
-            code: 2,
+            code: 6,
             message: '검색 결과가 없습니다.'
         })
     }
@@ -701,6 +709,239 @@ app.post('/googleMap', async function (req, res) {
     if (callPostGoogleMap.result === true) {
         return res.status(200).json({
             googleMap: callPostGoogleMap.googleMap
+        })
+    }
+})
+
+//GET searchList
+app.get('/searchList', async function (req, res) {
+    const {session} = req.body
+
+    if (!session || session.length !== 64) {
+        return res.status(400).json({
+            code: 1,
+            message: 'session은 64자입니다.'
+        })
+    }
+
+    const callGetSearchList = await getSearchList(session)
+
+    if (callGetSearchList.code === 2) {
+        return res.status(400).json({
+            code: 2,
+            message: 'session이 만료되었거나 일치하지 않습니다.'
+        })
+    }
+
+    if (callGetSearchList.result === false) {
+        return res.status(500).json({
+            message: '서버 오류입니다.'
+        })
+    }
+
+    if (callGetSearchList.result === true) {
+        return res.status(200).json({
+            searchList: callGetSearchList.searchList
+        })
+    }
+})
+
+//PATCH foodLike
+app.patch('/foodLike', async function (req, res) {
+    const {session, sidx, like} = req.body
+
+    if (!session || session.length !== 64) {
+        return res.status(400).json({
+            code: 1,
+            message: 'session은 64자입니다.'
+        })
+    }
+
+    if (!sidx || sidx > 999999999) {
+        return res.status(400).json({
+            code: 2,
+            message: 'sidx는 999999999이하입니다.'
+        })
+    }
+
+    if (like !== 0 && like !== 1) {
+        return res.status(400).json({
+            code: 3,
+            message: 'like는 0혹은 1입니다.(0:비활성화 1:활성화)'
+        })
+    }
+
+    const callPatchFoodLike = await patchFoodLike(session, sidx, like)
+
+    if (callPatchFoodLike.code === 4) {
+        return res.status(400).json({
+            code: 4,
+            message: 'session이 만료되었거나 일치하지 않습니다.'
+        })
+    }
+
+    if (callPatchFoodLike.result === false) {
+        return res.status(500).json({
+            message: '서버 오류입니다.'
+        })
+    }
+
+    if (callPatchFoodLike.result === true) {
+        return res.status(200).json({
+            message: '성공'
+        })
+    }
+})
+
+//GET foodLike
+app.get('/foodLike', async function (req, res) {
+    const {session, sidx} = req.body
+
+    if (!session || session.length !== 64) {
+        return res.status(400).json({
+            code: 1,
+            message: 'session은 64자입니다.'
+        })
+    }
+
+    if (!sidx || sidx > 999999999) {
+        return res.status(400).json({
+            code: 2,
+            message: 'sidx는 999999999이하입니다.'
+        })
+    }
+
+    const callGetFoodLike = await getFoodLike(session, sidx)
+
+    if (callGetFoodLike.code === 3) {
+        return res.status(400).json({
+            code: 3,
+            message: 'session이 만료되었거나 일치하지 않습니다.'
+        })
+    }
+
+    if (callGetFoodLike.result === false) {
+        return res.status(500).json({
+            message: '서버 오류입니다.'
+        })
+    }
+
+    if (callGetFoodLike.result === true) {
+        return res.status(200).json({
+            like: callGetFoodLike.like
+        })
+    }
+})
+
+//GET searchDetail
+app.get('/searchDetail', async function (req, res) {
+    const {session, sidx} = req.body
+
+    if (!session || session.length !== 64) {
+        return res.status(400).json({
+            code: 1,
+            message: 'session은 64자입니다.'
+        })
+    }
+
+    if (!sidx || sidx > 999999999) {
+        return res.status(400).json({
+            code: 2,
+            message: 'sidx는 999999999이하입니다.'
+        })
+    }
+
+    const callGetSearchDetail = await getSearchDetail(session, sidx)
+
+    if (callGetSearchDetail.code === 3) {
+        return res.status(400).json({
+            code: 3,
+            message: 'session이 만료되었거나 일치하지 않습니다.'
+        })
+    }
+
+    if (callGetSearchDetail.result === false) {
+        return res.status(500).json({
+            message: '서버 오류입니다.'
+        })
+    }
+
+    if (callGetSearchDetail.result === true) {
+        return res.status(200).json({
+            sidx: callGetSearchDetail.sidx,
+            imgURL: callGetSearchDetail.imgURL,
+            food: callGetSearchDetail.name,
+            description: callGetSearchDetail.description,
+            origin: callGetSearchDetail.origin,
+            howToEat: callGetSearchDetail.howToEat,
+            ingredients: callGetSearchDetail.ingredients,
+            cantIngredients: callGetSearchDetail.cantIngredients
+        })
+    }
+})
+
+//GET likeRanking
+app.get('/likeRanking', async function (req, res) {
+    const {session} = req.body
+
+    if (!session || session.length !== 64) {
+        return res.status(400).json({
+            code: 1,
+            message: 'session은 64자입니다.'
+        })
+    }
+
+    const callGetLikeRanking = await getLikeRanking(session)
+
+    if (callGetLikeRanking.code === 2) {
+        return res.status(400).json({
+            code: 2,
+            message: 'session이 만료되었거나 일치하지 않습니다.'
+        })
+    }
+
+    if (callGetLikeRanking.result === false) {
+        return res.status(500).json({
+            message: '서버 오류입니다.'
+        })
+    }
+
+    if (callGetLikeRanking.result === true) {
+        return res.status(200).json({
+            likeRanking: callGetLikeRanking.foods
+        })
+    }
+})
+
+//GET searchRanking
+app.get('/searchRanking', async function (req, res) {
+    const {session} = req.body
+
+    if (!session || session.length !== 64) {
+        return res.status(400).json({
+            code: 1,
+            message: 'session은 64자입니다.'
+        })
+    }
+
+    const callGetSearchRanking = await getSearchRanking(session)
+
+    if (callGetSearchRanking.code === 2) {
+        return res.status(400).json({
+            code: 2,
+            message: 'session이 만료되었거나 일치하지 않습니다.'
+        })
+    }
+
+    if (callGetSearchRanking.result === false) {
+        return res.status(500).json({
+            message: '서버 오류입니다.'
+        })
+    }
+
+    if (callGetSearchRanking.result === true) {
+        return res.status(200).json({
+            likeRanking: callGetSearchRanking.foods
         })
     }
 })

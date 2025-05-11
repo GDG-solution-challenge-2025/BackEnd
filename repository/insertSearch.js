@@ -1,7 +1,7 @@
 //function
 import {dbConnection} from '../function/dbConnection.js'
 
-export async function insertSearch(sidx, uidx, imgURL, nameKo, descriptionKo, originKo, howToEatKo, ingredientsKo, cantIngredientsKo, nameEn, descriptionEn, originEn, howToEatEn, ingredientsEn, cantIngredientsEn) {
+export async function insertSearch(sidx, uidx, date, imgURL, nameKo, descriptionKo, originKo, howToEatKo, ingredientsKo, cantIngredientsKo, nameEn, descriptionEn, originEn, howToEatEn, ingredientsEn, cantIngredientsEn) {
     try {
         const callDbConnection = await dbConnection()
 
@@ -9,8 +9,8 @@ export async function insertSearch(sidx, uidx, imgURL, nameKo, descriptionKo, or
             throw new Error('dbConnection')
         }
 
-        const query = 'INSERT INTO search (sidx, uidx, imgURL, nameKo, descriptionKo, originKo, howToEatKo, ingredientsKo, cantIngredientsKo, nameEn, descriptionEn, originEn, howToEatEn, ingredientsEn, cantIngredientsEn) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)'
-        const [result] = await callDbConnection.connection.execute(query, [sidx, uidx, imgURL, nameKo, descriptionKo, originKo, howToEatKo, ingredientsKo, cantIngredientsKo, nameEn, descriptionEn, originEn, howToEatEn, ingredientsEn, cantIngredientsEn])
+        const query = 'INSERT INTO search (sidx, uidx, date, imgURL, nameKo, descriptionKo, originKo, howToEatKo, ingredientsKo, cantIngredientsKo, nameEn, descriptionEn, originEn, howToEatEn, ingredientsEn, cantIngredientsEn) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)'
+        const [result] = await callDbConnection.connection.execute(query, [sidx, uidx, date, imgURL, nameKo, descriptionKo, originKo, howToEatKo, ingredientsKo, cantIngredientsKo, nameEn, descriptionEn, originEn, howToEatEn, ingredientsEn, cantIngredientsEn])
         await callDbConnection.connection.end()
 
         if (result.affectedRows === 0) {
