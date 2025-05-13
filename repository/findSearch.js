@@ -27,13 +27,13 @@ export async function findSearch(sidx) {
             originKo: rows[0].originKo,
             howToEatKo: rows[0].howToEatKo,
             ingredientsKo: JSON.parse(rows[0].ingredientsKo),
-            cantIngredientsKo: JSON.parse(rows[0].ingredientsKo),
+            cantIngredientsKo: JSON.parse(rows[0].cantIngredientsKo),
             nameEn: rows[0].nameEn,
             descriptionEn: rows[0].descriptionEn,
             originEn: rows[0].originEn,
             howToEatEn: rows[0].howToEatEn,
             ingredientsEn: JSON.parse(rows[0].ingredientsEn),
-            cantIngredientsEn: JSON.parse(rows[0].ingredientsEn)
+            cantIngredientsEn: JSON.parse(rows[0].cantIngredientsEn)
         }
     }
 

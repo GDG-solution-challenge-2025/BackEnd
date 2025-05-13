@@ -32,6 +32,9 @@ import {getSearchRanking} from './service/getSearchRanking.js'
 import {postOcrAI} from './service/postOcrAI.js'
 import {postTextAI} from './service/postTextAI.js'
 import {getGoogleTranslate} from './service/getGoogleTranslate.js'
+import {deleteAccount} from './service/deleteAccount.js'
+import {getSearchRandom5} from './service/getSearchRandom5.js'
+import {getSearchRandom10} from './service/getSearchRandom10.js'
 
 //middleware
 const app = express()
@@ -55,15 +58,15 @@ app.use(cors())
 
 //POST signup
 app.post('/signup', async function (req, res) {
-   const {id, pw, name, lang} = req.body
-   const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]*$/
+    const {id, pw, name, lang} = req.body
+    const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]*$/
 
-   if (!id || id.length < 3 || id.length > 50) {
-       return res.status(400).json({
-           code: 1,
-           message: 'id는 3자 이상 50자 이하입니다.'
-       })
-   }
+    if (!id || id.length < 3 || id.length > 50) {
+        return res.status(400).json({
+            code: 1,
+            message: 'id는 3자 이상 50자 이하입니다.'
+        })
+    }
 
     if (!name || name.length > 50) {
         return res.status(400).json({
@@ -72,21 +75,21 @@ app.post('/signup', async function (req, res) {
         })
     }
 
-   if (!pw || pw.length < 8 || pw.length > 50 || !regex.test(pw)) {
-       return res.status(400).json({
-          code: 3,
-          message: 'pw는 8자 이상 50자 이하, 정규식(소문자, 대문자, 숫자, 특수기호)을 충족해야 합니다.'
-       })
-   }
+    if (!pw || pw.length < 8 || pw.length > 50 || !regex.test(pw)) {
+        return res.status(400).json({
+            code: 3,
+            message: 'pw는 8자 이상 50자 이하, 정규식(소문자, 대문자, 숫자, 특수기호)을 충족해야 합니다.'
+        })
+    }
 
-   if (lang !== 0 && lang !== 1) {
-       return res.status(400).json({
-           code: 4,
-           message: 'lang은 0혹은 1입니다.(0:한국어 1:영어)'
-       })
-   }
+    if (lang !== 0 && lang !== 1) {
+        return res.status(400).json({
+            code: 4,
+            message: 'lang은 0혹은 1입니다.(0:한국어 1:영어)'
+        })
+    }
 
-   const callSignup = await signup(id, name, pw, lang)
+    const callSignup = await signup(id, name, pw, lang)
 
     if (callSignup.code === 5) {
         return res.status(400).json({
@@ -1067,6 +1070,120 @@ app.get('/googleTranslate', async function (req, res) {
     if (callGetGoogleTranslate.result === true) {
         return res.status(200).json({
             googleTranslate: callGetGoogleTranslate.url
+        })
+    }
+})
+
+//DELETE account
+app.delete('/account', async function (req, res) {
+    const {session, pw} = req.body
+
+    if (!session || session.length !== 64) {
+        return res.status(400).json({
+            code: 1,
+            message: 'session은 64자입니다.'
+        })
+    }
+
+    if (!pw || pw.length > 50) {
+        return res.status(400).json({
+            code: 2,
+            message: 'pw는 1자 이상 50자 이하입니다.'
+        })
+    }
+
+    const callDeleteAccount = await deleteAccount(session, pw)
+
+
+    if (callDeleteAccount.code === 3) {
+        return res.status(400).json({
+            code: 3,
+            message: 'session이 만료되었거나 일치하지 않습니다.'
+        })
+    }
+
+    if (callDeleteAccount.code === 4) {
+        return res.status(400).json({
+            code: 4,
+            message: 'pw가 일치하지 않습니다.'
+        })
+    }
+
+    if (callDeleteAccount.result === false) {
+        return res.status(500).json({
+            message: '서버 오류입니다.'
+        })
+    }
+
+    if (callDeleteAccount.result === true) {
+        return res.status(200).json({
+            message: '성공'
+        })
+    }
+})
+
+//GET searchRandom5
+app.get('/searchRandom5', async function (req, res) {
+    const {session} = req.body
+
+    if (!session || session.length !== 64) {
+        return res.status(400).json({
+            code: 1,
+            message: 'session은 64자입니다.'
+        })
+    }
+
+    const callGetSearchRandom5 = await getSearchRandom5(session)
+
+    if (callGetSearchRandom5.code === 2) {
+        return res.status(400).json({
+            code: 2,
+            message: 'session이 만료되었거나 일치하지 않습니다.'
+        })
+    }
+
+    if (callGetSearchRandom5.result === false) {
+        return res.status(500).json({
+            message: '서버 오류입니다.'
+        })
+    }
+
+    if (callGetSearchRandom5.result === true) {
+        return res.status(200).json({
+            random: callGetSearchRandom5.foods
+        })
+    }
+})
+
+//GET searchRandom10
+app.get('/searchRandom10', async function (req, res) {
+    const {session} = req.body
+
+    if (!session || session.length !== 64) {
+        return res.status(400).json({
+            code: 1,
+            message: 'session은 64자입니다.'
+        })
+    }
+
+    const callGetSearchRandom10 = await getSearchRandom10(session)
+
+    if (callGetSearchRandom10.code === 2) {
+        return res.status(400).json({
+            code: 2,
+            message: 'session이 만료되었거나 일치하지 않습니다.'
+        })
+    }
+
+    if (callGetSearchRandom10.result === false) {
+        return res.status(500).json({
+            message: '서버 오류입니다.'
+        })
+    }
+
+    if (callGetSearchRandom10.result === true) {
+        return res.status(200).json({
+            random: callGetSearchRandom10.foods
         })
     }
 })

@@ -66,12 +66,17 @@ export async function postFoodAI(session, file) {
         const originKo = parsed[3]?.replace(/`/g, '').replace(/\r?\n/g, '').trim()
         const howToEatKo = parsed[4]?.replace(/`/g, '').replace(/\r?\n/g, '').trim()
         const ingredientsKo = parsed[5]?.replace(/`/g, '').trim().split(/\r?\n/).map(i => i.replace(/^\*\s*/, '').trim()).filter(Boolean)
-        const cantIngredientsKo = parsed[6]?.replace(/`/g, '').trim().split(/\r?\n/).map(i => i.replace(/^\*\s*/, '').trim()).filter(Boolean)
+        var cantIngredientsKo = parsed[6]?.replace(/`/g, '').trim().split(/\r?\n/).map(i => i.replace(/^\*\s*/, '').trim()).filter(Boolean)
         const descriptionEn = parsed[7]?.replace(/`/g, '').replace(/\r?\n/g, '').trim()
         const originEn = parsed[8]?.replace(/`/g, '').replace(/\r?\n/g, '').trim()
         const howToEatEn = parsed[9]?.replace(/`/g, '').replace(/\r?\n/g, '').trim()
         const ingredientsEn = parsed[10]?.replace(/`/g, '').trim().split(/\r?\n/).map(i => i.replace(/^\*\s*/, '').trim()).filter(Boolean)
-        const cantIngredientsEn = parsed[11]?.replace(/`/g, '').trim().split(/\r?\n/).map(i => i.replace(/^\*\s*/, '').trim()).filter(Boolean)
+        var cantIngredientsEn = parsed[11]?.replace(/`/g, '').trim().split(/\r?\n/).map(i => i.replace(/^\*\s*/, '').trim()).filter(Boolean)
+
+        if ('없음' === cantIngredientsKo[0]) {
+            cantIngredientsKo = []
+            cantIngredientsEn = []
+        }
 
         const callFindUser = await findUser(callCheckExpireSession.uidx)
 
